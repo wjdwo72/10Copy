@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>텐카피 - 인공지능 광고 카피 자동 생성기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5142f5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 100px 20px 40px 20px; /* nav 높이만큼 상단 패딩 추가 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 상단 네비게이션 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .coin-balance {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .nav-link {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+        }
+
+        .btn-upgrade {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-upgrade:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-group {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        .btn-generate {
+            padding: 20px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(81, 66, 245, 0.4);
+        }
+
+        #results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            width: 100%;
+        }
+
+        .copy-card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .copy-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .angle-tag {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .hook-content {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        .body-content {
+            font-size: 1rem;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            line-height: 1.7;
+            background: rgba(15, 23, 42, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .cta-btn {
+            background: #334155;
+            color: #fff;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cta-btn:hover {
+            background: #475569;
+            border-color: var(--accent);
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 60px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">10Copy 🚀</a>
+            <div class="nav-menu">
+                <a href="/history" class="nav-link">카피 저장소 💾</a>
+                <span class="coin-balance">💰 <span id="coinDisplay">100</span> COINS</span>
+                <a href="/payment" class="btn-upgrade">요금제 충전</a>
+                <a href="/login" class="nav-link">로그아웃</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>텐카피 🔥</h1>
+            <p style="font-size: 1.2rem; color: #94a3b8; font-weight: 500;">베테랑 기획자의 뇌를 복제한 초강력 광고 카피 엔진</p>
+        </header>
+
+        <div class="input-group">
+            <div class="input-item">
+                <div class="input-label">대상 상품 상세페이지 URL (선택)</div>
+                <input type="text" id="urlInput" placeholder="https://smartstore.naver.com/products/...">
+            </div>
+
+            <div class="input-item">
+                <div class="input-label">상품 이미지 첨부 (선택)</div>
+                <div class="file-upload-wrapper" onclick="document.getElementById('imageInput').click()">
+                    <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="previewImage(this)">
+                    <div id="imagePlaceholder">📸 클릭하여 상품 이미지를 업로드하세요</div>
+                    <img id="imagePreview" style="display:none; max-width: 100%; border-radius: 12px; margin-top: 10px;">
+                </div>
+            </div>
+            
+            <div class="input-item">
+                <div class="input-label">제품 핵심 내용 및 강점 (직접 입력 가능)</div>
+                <textarea id="manualDesc" placeholder="상품의 특징, 장점 등을 자유롭게 적어주세요. URL이 없을 경우 이 내용을 바탕으로 카피가 생성됩니다." rows="4" 
+                    style="width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 1rem; box-sizing: border-box; resize: none;"></textarea>
+            </div>
+
+            <div class="input-item">
+                <div class="input-label">타겟 고객 정의 (필수)</div>
+                <input type="text" id="targetInput" placeholder="예: 무기력증에 시달리는 30대 남성, 육아에 지친 초보맘 등" value="30대 직장인">
+            </div>
+            
+            <button onclick="generateCopy()" class="btn-generate">광고 카피 10세트 폭풍 생성! (충성! 🫡)</button>
+            <button onclick="window.location.reload()" class="btn-secondary" style="width: 100%; border: 1px solid #334155; padding: 12px; border-radius: 12px; background: transparent; color: #94a3b8; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s;">입력 초기화 및 새로고침 🔄</button>
+        </div>
+
+        <style>
+            .file-upload-wrapper {
+                border: 2px dashed #334155;
+                padding: 20px;
+                border-radius: 12px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .file-upload-wrapper:hover {
+                border-color: var(--accent);
+                background: rgba(56, 189, 248, 0.05);
+            }
+        </style>
+
+        <script>
+            function previewImage(input) {
+                const preview = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('imagePlaceholder');
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        </script>
+
+        <div id="loader" class="loader">
+            🚀 기획 부장이 데이터 스캔 중... 카피를 깎고 있습니다! 잠시만 기다려 주십시오!
+        </div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let generatedData = []; // 전역 데이터 저장소
+
+        async function generateCopy() {
+            const url = document.getElementById('urlInput').value;
+            const target = document.getElementById('targetInput').value;
+            const manualDesc = document.getElementById('manualDesc').value;
+            const imageInput = document.getElementById('imageInput');
+            
+            const resultsDiv = document.getElementById('results');
+            const loader = document.getElementById('loader');
+            const coinDisplay = document.getElementById('coinDisplay');
+
+            if(!url && !manualDesc && !imageInput.files[0]) {
+                return alert('URL, 제품 설명, 이미지 중 최소 하나는 입력해주셔야 이 부장이 작업을 시작합니다! 🫡');
+            }
+            if(!target) return alert('타겟 고객을 입력해주십시오! 누구에게 팔지 알아야 카피를 짤 수 있습니다! 😎');
+
+            resultsDiv.innerHTML = '';
+            loader.style.display = 'block';
+
+            let imageData = null;
+            if (imageInput.files[0]) {
+                const reader = new FileReader();
+                imageData = await new Promise((resolve) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(imageInput.files[0]);
+                });
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/generate-copy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        url: url, 
+                        target_audience: target, 
+                        manual_description: manualDesc,
+                        image_data: imageData,
+                        user_id: "test_user" 
+                    })
+                });
+
+                const result = await response.json();
+                loader.style.display = 'none';
+
+                if(response.ok) {
+                    coinDisplay.innerText = result.coins_left;
+                    generatedData = Array.isArray(result.data) ? result.data : [result.data];
+                    
+                    generatedData.forEach((item, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'copy-card';
+                        card.style.animationDelay = `${index * 0.1}s`;
+                        
+                        card.innerHTML = `
+                            <span class="angle-tag">🔥 ${item.앵글}</span>
+                            <div class="section-label">[ HEADLINE ]</div>
+                            <div class="hook-content">${item.후킹문구}</div>
+                            <div class="section-label">[ BODY COPY ]</div>
+                            <div class="body-content">${item.본문내용}</div>
+                            <div class="btn-group" style="display: flex; gap: 10px; margin-top: 20px;">
+                                <button class="cta-btn secondary" onclick="saveResult(${index}, this)" style="background: #4b5563; flex: 1;">보관함 저장 💾</button>
+                                <button class="cta-btn" onclick="copyResult(${index}, this)" style="flex: 2;">카피 복사하기 📋</button>
+                            </div>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                } else {
+                    alert('문제가 발생했습니다: ' + (result.detail || '기타 에러 발생! 조치가 필요합니다!'));
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                alert('서버 연결 실패! 대표님, 백엔드 엔진이 꺼져있는 것 같습니다! 확인 부탁드립니다! 🫡');
+            }
+        }
+
+        async function saveResult(index, btn) {
+            const item = generatedData[index];
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/save-copy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        angle: item.앵글,
+                        hook: item.후킹문구,
+                        body: item.본문내용
+                    })
+                });
+                
+                if (response.ok) {
+                    btn.innerText = '✅ 저장 완료!';
+                    btn.style.background = '#8b5cf6';
+                    btn.disabled = true;
+                }
+            } catch (error) {
+                alert('저장 실패!');
+            }
+        }
+
+        function copyResult(index, btn) {
+            const item = generatedData[index];
+            const textToCopy = `[${item.앵글}]\n\n${item.후킹문구}\n\n${item.본문내용}`;
+            
+            // 1. 임시 textarea 생성 (가장 확실한 방법)
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    const originalText = btn.innerText;
+                    btn.innerText = '✅ 복사 완료!';
+                    btn.style.background = 'var(--success)';
+                    btn.style.borderColor = 'var(--success)';
+                    
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.style.background = '#334155';
+                        btn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    }, 2000);
+                } else {
+                    alert('복사 실패! 직접 드래그해서 복사해 주세요 🫡');
+                }
+            } catch (err) {
+                alert('기류가 불안정하여 복사에 실패했습니다 ㅠㅠ 직접 드래그 부탁드립니다!');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>

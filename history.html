@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카피 저장소 - 10Copy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5142f5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 100px 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .history-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .angle-tag {
+            background: rgba(81, 66, 245, 0.2);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .date-tag {
+            float: right;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .hook {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            line-height: 1.4;
+        }
+
+        .body {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .btn-copy {
+            margin-top: 15px;
+            width: 100%;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 100px 0;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">10Copy 💎</a>
+            <a href="/" class="nav-link" style="color: white; text-decoration: none; font-weight: 600;">🏠 홈으로</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>나의 카피 보관함 💾</h1>
+        <div id="historyList" class="history-list">
+            <!-- 히스토리 아이템이 여기에 로드됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        async function loadHistory() {
+            const listDiv = document.getElementById('historyList');
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/history');
+                const data = await response.json();
+                
+                if (data.history.length === 0) {
+                    listDiv.innerHTML = '<div class="empty-state">저장된 카피가 없습니다. 지금 바로 멋진 카피를 생성하고 저장해 보세요! 🫡</div>';
+                    return;
+                }
+
+                data.history.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'history-card';
+                    card.innerHTML = `
+                        <span class="date-tag">${item.created_at}</span>
+                        <span class="angle-tag">🔥 ${item.angle}</span>
+                        <div class="hook">${item.hook}</div>
+                        <div class="body">${item.body}</div>
+                        <button class="btn-copy" onclick="copyText(this, \`[\${item.angle}]\\n\${item.hook}\\n\${item.body}\`)">내용 복사하기 📋</button>
+                    `;
+                    listDiv.appendChild(card);
+                });
+            } catch (error) {
+                listDiv.innerHTML = '<div class="empty-state">기록을 불러오는 데 실패했습니다. ㅠㅠ</div>';
+            }
+        }
+
+        function copyText(btn, text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const original = btn.innerText;
+            btn.innerText = '✅ 복사 완료!';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.innerText = original;
+                btn.style.background = '#334155';
+            }, 2000);
+        }
+
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>
