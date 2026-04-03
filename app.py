@@ -21,17 +21,32 @@ app.add_middleware(
 )
 
 # ==========================================
-# 1. 가상 데이터베이스 (실제 운영시 DB 연동)
+# 1. 데이터베이스 시뮬레이션 (JSON 파일 저장)
 # ==========================================
-USER_DATA = {
-    "test_user": {
-        "email": "jeffrey@solopreneur.com",
-        "coins": 99999, # 무한 코인!! 💰
-        "daily_free": 99999, # 무한 무료!! 🚀
-        "history": [], # 저장된 카피 히스토리
-        "last_active": "2026-04-03"
+DATA_FILE = "users.json"
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "test_user": {
+            "email": "jeffrey@solopreneur.com",
+            "coins": 99999,
+            "daily_free": 99999,
+            "history": [],
+            "last_active": "2026-04-03"
+        }
     }
-}
+
+def save_data():
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(USER_DATA, f, ensure_ascii=False, indent=4)
+
+USER_DATA = load_data()
 
 # ==========================================
 # 2. API 및 모델 설정
@@ -97,6 +112,7 @@ async def save_copy(data: dict, user_id: str = "test_user"):
         "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     user["history"].insert(0, copy_entry) # 최신순 저장
+    save_data()
     return {"status": "success", "message": "저장 완료!"}
 
 @app.post("/api/v1/generate-copy")
@@ -112,6 +128,8 @@ async def generate_ad_copy(req: CopyRequest):
         user["coins"] -= 10
     else:
         raise HTTPException(status_code=402, detail="코인이 부족합니다. 충전 후 이용해 주세요!")
+    
+    save_data()
 
     # 데이터 수집 (URL, 수동 입력, 이미지)
     context_text = ""

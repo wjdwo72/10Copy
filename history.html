@@ -157,7 +157,7 @@
         async function loadHistory() {
             const listDiv = document.getElementById('historyList');
             try {
-                const response = await fetch('http://localhost:8000/api/v1/history');
+                const response = await fetch('/api/v1/history');
                 const data = await response.json();
                 
                 if (data.history.length === 0) {

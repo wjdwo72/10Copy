@@ -405,7 +405,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8000/api/v1/generate-copy', {
+                const response = await fetch('/api/v1/generate-copy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -454,7 +454,7 @@
         async function saveResult(index, btn) {
             const item = generatedData[index];
             try {
-                const response = await fetch('http://localhost:8000/api/v1/save-copy', {
+                const response = await fetch('/api/v1/save-copy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
